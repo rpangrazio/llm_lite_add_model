@@ -358,6 +358,10 @@ def add_llmlite_model(
         payload['litellm_params']['api_key'] = model_key or 'none'
     elif credential_values:
         payload['litellm_params'].update(credential_values.get('credential_values', {}))
+        credential_provider = credential_values.get('credential_info', {}).get('custom_llm_provider')
+        if not credential_provider:
+            raise ValueError(f"gateway credential {credential_name!r} is missing custom_llm_provider")
+        payload['litellm_params']['custom_llm_provider'] = credential_provider
     if access_group:
         payload['model_info']['access_groups'] = [access_group]
     if credential_name:
