@@ -1,6 +1,6 @@
 # llmlite model sync
 
-Small utility to sync models from an OpenAI-compatible endpoint, optionally from the GitHub Models catalog, and register them with an llmlite gateway.
+Small utility to sync models from an OpenAI-compatible endpoint, optionally from the GitHub Models catalog, and register them with a LiteLLM gateway.
 
 It can also list gateway credentials, create or update named credentials, and delete all registered models.
 
@@ -31,7 +31,7 @@ OPENAI_API_KEY=sk-... LITELLM_MASTER_KEY=key... python add_models.py \
 | `OPENAI_API_KEY` | API key for the source OpenAI-compatible endpoint |
 | `GITHUB_API_URL` | GitHub Models base URL |
 | `GITHUB_API_TOKEN` | GitHub token for the Copilot models catalog |
-| `LLMGATEWAY_URL` | llmlite gateway base URL |
+| `LLMGATEWAY_URL` | LiteLLM gateway base URL |
 | `LITELLM_MASTER_KEY` | Gateway API key |
 | `MODEL_PUBLIC_PREFIX` | Prefix prepended to model names when registering (e.g. `local`) |
 | `LLM_ACCESS_GROUP` | Access group assigned to registered models |
@@ -48,8 +48,8 @@ All of these can also be passed as CLI flags (see `--help`).
 --github-url          GitHub Models base URL (default: https://models.github.ai)
 --github-token        GitHub API token
 --include-github      Also fetch GitHub Copilot models catalog
---llmgateway-url      llmlite gateway base URL (default: http://localhost:4000)
---llmgateway-key      llmlite gateway master key
+--llmgateway-url      LiteLLM gateway base URL (default: http://localhost:4000)
+--llmgateway-key      LiteLLM gateway master key
 --public-prefix       Prefix to prepend to registered model names
 --access-group        Access group to assign to all registered models
 --provider-cred       Provider credential: provider:key=value  (repeatable)
