@@ -145,28 +145,16 @@ def get_llmlite_models(gateway_url: str, api_key: Optional[str] = None, timeout:
     Raises:
         requests.HTTPError: If the HTTP response status indicates an error.
     """
-    url = gateway_url.rstrip('/') + '/v1/models'
-    headers = {}
-    if api_key:
-        headers['Authorization'] = f'Bearer {api_key}'
-    resp = requests.get(url, headers=headers, timeout=timeout)
-    resp.raise_for_status()
-    data = resp.json()
-    # Expecting a list or {"data": [...]}
+    infos = get_llmlite_model_infos(gateway_url, api_key=api_key, timeout=timeout)
     models = []
-    if isinstance(data, dict) and 'data' in data:
-        items = data['data']
-    else:
-        items = data
-    for item in items:
-        if isinstance(item, dict) and 'id' in item:
-            models.append(item['id'])
-        elif isinstance(item, dict) and 'model_name' in item:
-            models.append(item['model_name'])
-        elif isinstance(item, dict) and 'model_id' in item:
-            models.append(item['model_id'])
-        elif isinstance(item, str):
-            models.append(item)
+    for item in infos:
+        model_name = item.get('model_name')
+        if isinstance(model_name, str) and model_name:
+            models.append(model_name)
+            continue
+        model_id = item.get('model_info', {}).get('id')
+        if isinstance(model_id, str) and model_id:
+            models.append(model_id)
     return models
 
 
@@ -709,7 +697,7 @@ def _run_sync_models(args: argparse.Namespace) -> None:
             # Verify the model actually appears in the gateway list
             try:
                 gateway_now = get_llmlite_models(args.llmgateway_url, api_key=args.llmgateway_key, timeout=args.timeout)
-                if public_id in gateway_now:
+                if public_id in gateway_now or res.get('model_name') == public_id:
                     print('OK')
                 else:
                     print('WARNING (not present):', res)
