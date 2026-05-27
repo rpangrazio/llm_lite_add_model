@@ -106,7 +106,7 @@ Supported keys per provider entry:
 
 | Key | Description |
 |---|---|
-| `credential_name` | Name of an existing LiteLLM credential to attach to the model (stored as `litellm_params.litellm_credential_name`; the script validates it exists before creating the model and still sends a placeholder API key) |
+| `credential_name` | Name of an existing LiteLLM credential to attach to the model (stored as `litellm_params.litellm_credential_name`; the script validates it exists and uses the stored key for OpenAI/OpenAI_LIKE or a placeholder for Ollama) |
 | `api_key` | API key sent by the gateway when calling the model backend |
 
 **CLI example** — attach a pre-configured credential named `ollama-local` to all Ollama models:
