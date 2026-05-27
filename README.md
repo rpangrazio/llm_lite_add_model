@@ -98,7 +98,7 @@ python add_models.py \
 
 ## Provider credentials
 
-LiteLLM supports [stored LLM Credentials](https://docs.litellm.ai/docs/proxy/ui_credentials) configured via the UI. To attach an existing credential to every model being registered, pass its name via `--gateway-credential`. You can still use `--provider-cred` or a credentials file for source-specific mappings.
+LiteLLM supports [stored LLM Credentials](https://docs.litellm.ai/docs/proxy/ui_credentials) configured via the UI. To attach an existing credential to every model being registered, pass its name via `--gateway-credential`. You can still use `--provider-cred` or a credentials file for source-specific mappings. If both are provided, `--gateway-credential` takes precedence.
 
 **Format:** `provider:key=value`
 
