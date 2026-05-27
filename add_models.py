@@ -2,11 +2,11 @@
 """Fetch models from an OpenAI-compatible endpoint and register them with an llmlite gateway via its web API.
 
 Usage examples:
-  OPENAI_API_KEY=sk... LLMGATEWAY_API_KEY=key... python add_models.py --openai-url https://api.openai.com --llmgateway-url http://localhost:8080 --dry-run
+  OPENAI_API_KEY=sk... LITELLM_MASTER_KEY=key... python add_models.py --openai-url https://api.openai.com --llmgateway-url http://localhost:8080 --dry-run
 
 Environment variables:
   OPENAI_API_KEY       OpenAI-compatible API key (or use --openai-key)
-  LLMGATEWAY_API_KEY   llmlite gateway API key (optional)
+  LITELLM_MASTER_KEY   llmlite gateway API key (optional)
 
 The script is idempotent: it will skip models already present on the gateway.
 """
@@ -426,7 +426,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument('--github-token', default=os.environ.get('GITHUB_API_TOKEN'), help='GitHub API token for Copilot models catalog')
     p.add_argument('--include-github', action='store_true', help='Include GitHub Copilot models when discovering models')
     p.add_argument('--llmgateway-url', default=os.environ.get('LLMGATEWAY_URL', 'http://localhost:4000'), help='llmlite gateway base URL')
-    p.add_argument('--llmgateway-key', default=os.environ.get('LLMGATEWAY_API_KEY'), help='llmlite gateway API key (if required)')
+    p.add_argument('--llmgateway-key', default=os.environ.get('LITELLM_MASTER_KEY'), help='llmlite gateway API key (if required)')
     p.add_argument('--provider-cred', action='append', help='Provider credential mapping: provider:key=value (can repeat)')
     p.add_argument('--provider-creds-file', help='File with provider:key=value per line')
     p.add_argument('--set-credential', action='append', metavar='NAME:PROVIDER:key=value,...',

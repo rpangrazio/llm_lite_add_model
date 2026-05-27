@@ -13,7 +13,7 @@ pip install -r requirements.txt
 2. Dry-run to preview what will be registered:
 
 ```bash
-OPENAI_API_KEY=sk-... LLMGATEWAY_API_KEY=key... python add_models.py \
+OPENAI_API_KEY=sk-... LITELLM_MASTER_KEY=key... python add_models.py \
   --openai-url http://localhost:11434 \
   --llmgateway-url http://localhost:4000 \
   --dry-run
@@ -26,7 +26,7 @@ OPENAI_API_KEY=sk-... LLMGATEWAY_API_KEY=key... python add_models.py \
 | Variable | Required | Description |
 |---|---|---|
 | `OPENAI_API_KEY` | yes | API key for the source OpenAI-compatible endpoint |
-| `LLMGATEWAY_API_KEY` | no | Master key for the LiteLLM gateway (Bearer token) |
+| `LITELLM_MASTER_KEY` | no | Master key for the LiteLLM gateway (Bearer token) |
 | `GITHUB_API_TOKEN` | no | GitHub token to fetch Copilot models catalog |
 | `MODEL_PUBLIC_PREFIX` | no | Prefix prepended to model names when registering (e.g. `local`) |
 | `LLM_ACCESS_GROUP` | no | Access group to assign models to on the gateway |
