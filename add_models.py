@@ -331,14 +331,15 @@ def add_llmlite_model(
             'model': provider_model,
             'custom_llm_provider': 'openai',
             'api_base': openai_url.rstrip('/'),
-            'api_key': model_key or 'none',
         },
         'model_info': {},
     }
+    if credential_name:
+        payload['litellm_params']['litellm_credential_name'] = credential_name
+    else:
+        payload['litellm_params']['api_key'] = model_key or 'none'
     if access_group:
         payload['model_info']['access_groups'] = [access_group]
-    if credential_name:
-        payload['model_info']['credential_name'] = credential_name
 
     resp = requests.post(url, json=payload, headers=headers, timeout=timeout)
     resp.raise_for_status()
