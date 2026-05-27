@@ -44,23 +44,24 @@ All of these can also be passed as CLI flags (see `--help`).
 
 ## CLI flags
 
-```
---openai-url          Source OpenAI-compatible base URL (default: https://api.openai.com)
---openai-key          Source API key
---include-github / --github-token / --github-url  Three separate related GitHub Copilot sync flags
---llmgateway-url      LiteLLM gateway base URL (default: http://localhost:4000)
---llmgateway-key      LiteLLM gateway master key
---public-prefix       Prefix to prepend to registered model names
---access-group        Access group to assign to all registered models
---provider-cred       Provider credential: provider:key=value  (repeatable)
---provider-creds-file File containing provider:key=value lines (# comments allowed)
---set-credential      Create/update a gateway credential: name:provider:key=value,... (repeatable)
---list-credentials    List all credentials configured on the gateway and exit
---dry-run             Print planned actions without registering or deleting
---delete-all          Delete all models currently in the gateway, then exit
---timeout             HTTP timeout in seconds (default: 10)
-```
-
+| Flag | Description |
+|---|---|
+| `--openai-url` | Source OpenAI-compatible base URL (default: `https://api.openai.com`) |
+| `--openai-key` | Source API key |
+| `--include-github` | Fetch GitHub Copilot models too |
+| `--github-token` | GitHub API token used with `--include-github` |
+| `--github-url` | GitHub Models base URL (default: `https://models.github.ai`) |
+| `--llmgateway-url` | LiteLLM gateway base URL (default: `http://localhost:4000`) |
+| `--llmgateway-key` | LiteLLM gateway master key |
+| `--public-prefix` | Prefix to prepend to registered model names |
+| `--access-group` | Access group to assign to all registered models |
+| `--provider-cred` | Provider credential mapping (`provider:key=value`), repeatable |
+| `--provider-creds-file` | File containing provider credential mappings, one per line |
+| `--set-credential` | Create or update a gateway credential (`name:provider:key=value,...`), repeatable |
+| `--list-credentials` | List all credentials configured on the gateway and exit |
+| `--dry-run` | Print planned actions without registering or deleting |
+| `--delete-all` | Delete all models currently in the gateway, then exit |
+| `--timeout` | HTTP timeout in seconds (default: `10`) |
 
 ## Gateway credentials
 
