@@ -47,9 +47,9 @@ All of these can also be passed as CLI flags (see `--help`).
 ```
 --openai-url          Source OpenAI-compatible base URL (default: https://api.openai.com)
 --openai-key          Source API key
---github-url          GitHub Models base URL (default: https://models.github.ai)
---github-token        GitHub API token
 --include-github      Also fetch GitHub Copilot models catalog
+--github-token        GitHub API token
+--github-url          GitHub Models base URL (default: https://models.github.ai)
 --llmgateway-url      LiteLLM gateway base URL (default: http://localhost:4000)
 --llmgateway-key      LiteLLM gateway master key
 --public-prefix       Prefix to prepend to registered model names
