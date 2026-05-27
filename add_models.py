@@ -242,6 +242,15 @@ def list_llmlite_credentials(gateway_url: str, api_key: Optional[str] = None, ti
     return data.get('credentials', []) if isinstance(data, dict) else []
 
 
+def gateway_credential_names(credentials: List[Dict]) -> Set[str]:
+    """Extract credential names from a gateway credential listing."""
+    return {
+        str(c.get('credential_name'))
+        for c in credentials
+        if c.get('credential_name')
+    }
+
+
 def upsert_llmlite_credential(
     gateway_url: str,
     credential_name: str,
@@ -598,6 +607,13 @@ def _run_sync_models(args: argparse.Namespace) -> None:
         print(f'Failed to fetch models from llmlite gateway: {e}', file=sys.stderr)
         sys.exit(1)
 
+    try:
+        gateway_credentials = list_llmlite_credentials(args.llmgateway_url, api_key=args.llmgateway_key, timeout=args.timeout)
+    except Exception as e:
+        print(f'Failed to fetch credentials from llmlite gateway: {e}', file=sys.stderr)
+        sys.exit(1)
+    credential_names = gateway_credential_names(gateway_credentials)
+
     provider_creds = parse_provider_creds(args.provider_cred, args.provider_creds_file)
 
     raw_prefix = (args.public_prefix or '')
@@ -622,6 +638,7 @@ def _run_sync_models(args: argparse.Namespace) -> None:
         print('Dry run enabled; no models will be posted.')
         return
 
+    errors = 0
     for raw, source, short, public_id in missing:
         try:
             print(f'Adding model {public_id}... ', end='', flush=True)
@@ -634,6 +651,10 @@ def _run_sync_models(args: argparse.Namespace) -> None:
                 or source_creds.get('credential')
                 or source_creds.get('credential_id')
             )
+            if credential_name and credential_name not in credential_names:
+                raise ValueError(
+                    f"gateway credential {credential_name!r} was not found on {args.llmgateway_url}"
+                )
             res = add_llmlite_model(
                 args.llmgateway_url,
                 public_id,
@@ -657,6 +678,10 @@ def _run_sync_models(args: argparse.Namespace) -> None:
                 print(f'Added (verification failed: {verify_exc}):', res)
         except Exception as e:
             print(f'FAILED: {e}', file=sys.stderr)
+            errors += 1
+
+    if errors:
+        sys.exit(1)
 
 
 def main() -> None:
