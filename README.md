@@ -68,6 +68,8 @@ All of these can also be passed as CLI flags (see `--help`).
 
 Use `--set-credential` to create or update a named credential stored in the gateway, and `--list-credentials` to inspect what's already configured.
 
+> The LiteLLM gateway must have `store_model_in_db` enabled for `/model/new` additions to appear in the UI/list.
+
 **Format:** `name:provider:key=value,key2=value2`
 
 | Part | Example | Description |

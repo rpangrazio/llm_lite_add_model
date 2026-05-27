@@ -701,6 +701,10 @@ def _run_sync_models(args: argparse.Namespace) -> None:
                     print('OK')
                 else:
                     print('WARNING (not present):', res)
+                if not res.get('model_info', {}).get('db_model', True):
+                    print(
+                        'WARNING: gateway store_model_in_db appears disabled; model may not appear in the UI/list.'
+                    )
             except Exception as verify_exc:
                 # Verification request failed; report the add response but don't crash
                 print(f'Added (verification failed: {verify_exc}):', res)
