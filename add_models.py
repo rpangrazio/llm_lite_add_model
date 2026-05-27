@@ -15,7 +15,7 @@ import argparse
 import os
 import sys
 import requests
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
 
 
 def _load_env_file(path: str = None) -> None:
@@ -603,7 +603,7 @@ def _run_sync_models(args: argparse.Namespace) -> None:
     prefix = raw_prefix.rstrip('/') + '/' if raw_prefix else ''
 
     missing: List[tuple] = []  # (raw, source, short, public_id)
-    seen_public: set = set()
+    seen_public: Set[str] = set()
     for raw, source in remote_models:
         short = normalize(raw)
         effective_prefix = 'github_copilot/' if source == 'github' else prefix
@@ -646,9 +646,9 @@ def _run_sync_models(args: argparse.Namespace) -> None:
                     print('OK')
                 else:
                     print('WARNING (not present):', res)
-            except Exception:
-                # If verification fails, report the add response but don't crash
-                print('Added (verification failed):', res)
+            except Exception as verify_exc:
+                # Verification request failed; report the add response but don't crash
+                print(f'Added (verification failed: {verify_exc}):', res)
         except Exception as e:
             print(f'FAILED: {e}', file=sys.stderr)
 
