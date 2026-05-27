@@ -15,11 +15,19 @@ import argparse
 import os
 import sys
 import requests
-from typing import List, Dict
+from typing import Dict, List, Optional
 
 
 def _load_env_file(path: str = None) -> None:
-    """Load KEY=VALUE pairs from an env file into os.environ (existing vars take priority)."""
+    """Load KEY=VALUE pairs from an env file into os.environ (existing vars take priority).
+
+    Looks for *path* first; if not given, checks for ``env`` and ``.env`` files
+    in the same directory as this script.  Only the first matching file is read.
+
+    Args:
+        path: Explicit path to an env file.  When ``None`` the default
+            candidates are tried in order.
+    """
     candidates = [path] if path else [
         os.path.join(os.path.dirname(os.path.abspath(__file__)), 'env'),
         os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env'),
@@ -43,8 +51,21 @@ _load_env_file()
 
 
 def fetch_openai_models(openai_url: str, api_key: str, timeout: int = 10) -> List[str]:
+    """Fetch the list of model IDs from an OpenAI-compatible ``/v1/models`` endpoint.
+
+    Args:
+        openai_url: Base URL of the OpenAI-compatible API.
+        api_key: ****** for authentication.
+        timeout: HTTP request timeout in seconds.
+
+    Returns:
+        List of model ID strings.
+
+    Raises:
+        requests.HTTPError: If the HTTP response status indicates an error.
+    """
     url = openai_url.rstrip('/') + '/v1/models'
-    headers = {'Authorization': f'Bearer {api_key}'}
+    headers = {'Authorization': f'******'}
     resp = requests.get(url, headers=headers, timeout=timeout)
     resp.raise_for_status()
     data = resp.json()
@@ -57,9 +78,27 @@ def fetch_openai_models(openai_url: str, api_key: str, timeout: int = 10) -> Lis
 
 
 def fetch_github_models(github_url: str, token: str, timeout: int = 10) -> List[str]:
+    """Fetch the list of model IDs from the GitHub Models catalog endpoint.
+
+    The catalog may return either a top-level list or a dict whose values
+    contain model objects.  Each model object is inspected for ``id``,
+    ``name``, ``model``, or ``model_id`` fields, in that order of preference.
+
+    Args:
+        github_url: Base URL of the GitHub Models API
+            (e.g. ``https://models.github.ai``).
+        token: GitHub personal access token for authentication.
+        timeout: HTTP request timeout in seconds.
+
+    Returns:
+        List of model ID strings.
+
+    Raises:
+        requests.HTTPError: If the HTTP response status indicates an error.
+    """
     url = github_url.rstrip('/') + '/catalog/models'
     headers = {
-        'Authorization': f'Bearer {token}',
+        'Authorization': f'******',
         'Accept': 'application/vnd.github+json',
         'X-GitHub-Api-Version': '2026-03-10',
     }
@@ -92,11 +131,24 @@ def fetch_github_models(github_url: str, token: str, timeout: int = 10) -> List[
     return models
 
 
-def get_llmlite_models(gateway_url: str, api_key: str = None, timeout: int = 10) -> List[str]:
+def get_llmlite_models(gateway_url: str, api_key: Optional[str] = None, timeout: int = 10) -> List[str]:
+    """Fetch the list of public model IDs currently registered on the llmlite gateway.
+
+    Args:
+        gateway_url: Base URL of the llmlite gateway.
+        api_key: Optional ****** for gateway authentication.
+        timeout: HTTP request timeout in seconds.
+
+    Returns:
+        List of model ID strings reported by the gateway.
+
+    Raises:
+        requests.HTTPError: If the HTTP response status indicates an error.
+    """
     url = gateway_url.rstrip('/') + '/v1/models'
     headers = {}
     if api_key:
-        headers['Authorization'] = f'Bearer {api_key}'
+        headers['Authorization'] = f'******'
     resp = requests.get(url, headers=headers, timeout=timeout)
     resp.raise_for_status()
     data = resp.json()
@@ -114,12 +166,24 @@ def get_llmlite_models(gateway_url: str, api_key: str = None, timeout: int = 10)
     return models
 
 
-def get_llmlite_model_infos(gateway_url: str, api_key: str = None, timeout: int = 10) -> List[Dict]:
-    """Return a list of model info dicts from the gateway, each containing 'model_name' and 'model_info.id'."""
+def get_llmlite_model_infos(gateway_url: str, api_key: Optional[str] = None, timeout: int = 10) -> List[Dict]:
+    """Return a list of model info dicts from the gateway, each containing 'model_name' and 'model_info.id'.
+
+    Args:
+        gateway_url: Base URL of the llmlite gateway.
+        api_key: Optional ****** for gateway authentication.
+        timeout: HTTP request timeout in seconds.
+
+    Returns:
+        List of model info dicts as returned by ``GET /model/info``.
+
+    Raises:
+        requests.HTTPError: If the HTTP response status indicates an error.
+    """
     url = gateway_url.rstrip('/') + '/model/info'
     headers = {}
     if api_key:
-        headers['Authorization'] = f'Bearer {api_key}'
+        headers['Authorization'] = f'******'
     resp = requests.get(url, headers=headers, timeout=timeout)
     resp.raise_for_status()
     data = resp.json()
@@ -127,12 +191,25 @@ def get_llmlite_model_infos(gateway_url: str, api_key: str = None, timeout: int 
     return items if isinstance(items, list) else []
 
 
-def delete_llmlite_model(gateway_url: str, model_db_id: str, api_key: str = None, timeout: int = 10) -> Dict:
-    """Delete a model from the gateway using its internal model_info.id."""
+def delete_llmlite_model(gateway_url: str, model_db_id: str, api_key: Optional[str] = None, timeout: int = 10) -> Dict:
+    """Delete a model from the gateway using its internal model_info.id.
+
+    Args:
+        gateway_url: Base URL of the llmlite gateway.
+        model_db_id: Internal database ID of the model (from ``model_info.id``).
+        api_key: Optional ****** for gateway authentication.
+        timeout: HTTP request timeout in seconds.
+
+    Returns:
+        Response body as a dict, or an empty dict when the body is not JSON.
+
+    Raises:
+        requests.HTTPError: If the HTTP response status indicates an error.
+    """
     url = gateway_url.rstrip('/') + '/model/delete'
     headers = {'Content-Type': 'application/json'}
     if api_key:
-        headers['Authorization'] = f'Bearer {api_key}'
+        headers['Authorization'] = f'******'
     resp = requests.post(url, json={'id': model_db_id}, headers=headers, timeout=timeout)
     resp.raise_for_status()
     try:
@@ -141,29 +218,60 @@ def delete_llmlite_model(gateway_url: str, model_db_id: str, api_key: str = None
         return {}
 
 
-def list_llmlite_credentials(gateway_url: str, api_key: str = None, timeout: int = 10) -> List[Dict]:
-    """Return all credentials configured on the gateway."""
+def list_llmlite_credentials(gateway_url: str, api_key: Optional[str] = None, timeout: int = 10) -> List[Dict]:
+    """Return all credentials configured on the gateway.
+
+    Args:
+        gateway_url: Base URL of the llmlite gateway.
+        api_key: Optional ****** for gateway authentication.
+        timeout: HTTP request timeout in seconds.
+
+    Returns:
+        List of credential dicts as returned by ``GET /credentials``.
+
+    Raises:
+        requests.HTTPError: If the HTTP response status indicates an error.
+    """
     url = gateway_url.rstrip('/') + '/credentials'
     headers = {}
     if api_key:
-        headers['Authorization'] = f'Bearer {api_key}'
+        headers['Authorization'] = f'******'
     resp = requests.get(url, headers=headers, timeout=timeout)
     resp.raise_for_status()
     data = resp.json()
     return data.get('credentials', []) if isinstance(data, dict) else []
 
 
-def upsert_llmlite_credential(gateway_url: str, credential_name: str, provider: str, values: Dict, api_key: str = None, timeout: int = 10) -> Dict:
-    """Create or update a named credential on the gateway via POST /credentials.
+def upsert_llmlite_credential(
+    gateway_url: str,
+    credential_name: str,
+    provider: str,
+    values: Dict,
+    api_key: Optional[str] = None,
+    timeout: int = 10,
+) -> Dict:
+    """Create or update a named credential on the gateway via ``POST /credentials``.
 
-    credential_name: name to identify this credential (e.g. "ollama-local")
-    provider:        LiteLLM provider string (e.g. "OPENAI_LIKE", "openai", "anthropic")
-    values:          dict of credential values (e.g. {"api_key": "sk-...", "api_base": "http://..."})
+    Args:
+        gateway_url: Base URL of the llmlite gateway.
+        credential_name: Name to identify this credential (e.g. ``"ollama-local"``).
+        provider: LiteLLM provider string (e.g. ``"OPENAI_LIKE"``, ``"openai"``,
+            ``"anthropic"``).
+        values: Dict of credential values
+            (e.g. ``{"api_key": "sk-...", "api_base": "http://..."}``).
+        api_key: Optional ****** for gateway authentication.
+        timeout: HTTP request timeout in seconds.
+
+    Returns:
+        Response body as a dict, or an empty dict when the body is not JSON.
+
+    Raises:
+        requests.HTTPError: If the HTTP response status indicates an error.
     """
     url = gateway_url.rstrip('/') + '/credentials'
     headers = {'Content-Type': 'application/json'}
     if api_key:
-        headers['Authorization'] = f'Bearer {api_key}'
+        headers['Authorization'] = f'******'
     payload = {
         'credential_name': credential_name,
         'credential_values': values,
@@ -177,17 +285,42 @@ def upsert_llmlite_credential(gateway_url: str, credential_name: str, provider: 
         return {}
 
 
-def add_llmlite_model(gateway_url: str, model_id: str, openai_url: str, backend_model: str = None, api_key: str = None, model_key: str = None, credential_name: str = None, access_group: str = None, timeout: int = 10) -> Dict:
-    """Register a model with LiteLLM proxy via POST /model/new.
+def add_llmlite_model(
+    gateway_url: str,
+    model_id: str,
+    openai_url: str,
+    backend_model: Optional[str] = None,
+    api_key: Optional[str] = None,
+    model_key: Optional[str] = None,
+    credential_name: Optional[str] = None,
+    access_group: Optional[str] = None,
+    timeout: int = 10,
+) -> Dict:
+    """Register a model with the LiteLLM proxy via ``POST /model/new``.
 
-    model_id:       public name used on the gateway (may include a prefix).
-    backend_model:  exact model name as returned by the provider backend.
-    credential_name: optional name of an existing LLM Credential on the gateway to associate with this model.
+    Args:
+        gateway_url: Base URL of the llmlite gateway.
+        model_id: Public name used on the gateway (may include a prefix).
+        openai_url: Base URL of the upstream provider endpoint.
+        backend_model: Exact model name as returned by the provider backend.
+            Defaults to *model_id* when not supplied.
+        api_key: Optional ****** for gateway authentication.
+        model_key: API key forwarded to the upstream provider.
+        credential_name: Optional name of an existing LLM Credential on the
+            gateway to associate with this model.
+        access_group: Optional access group name to assign the model to.
+        timeout: HTTP request timeout in seconds.
+
+    Returns:
+        Response body as a dict, or an empty dict when the body is not JSON.
+
+    Raises:
+        requests.HTTPError: If the HTTP response status indicates an error.
     """
     url = gateway_url.rstrip('/') + '/model/new'
     headers = {'Content-Type': 'application/json'}
     if api_key:
-        headers['Authorization'] = f'Bearer {api_key}'
+        headers['Authorization'] = f'******'
 
     # Use the exact provider model name in litellm_params; LiteLLM routes via "openai/" provider prefix.
     provider_model = backend_model or model_id
@@ -215,7 +348,77 @@ def add_llmlite_model(gateway_url: str, model_id: str, openai_url: str, backend_
         return {}
 
 
-def parse_args():
+def normalize(raw: str) -> str:
+    """Derive a short, slug-like model name from a raw provider model ID.
+
+    Strips any namespace segment before the last ``/``, replaces any
+    remaining ``/`` characters with ``-``, and collapses internal whitespace.
+
+    Args:
+        raw: Raw model ID as returned by the provider (e.g. ``"org/model-name"``).
+
+    Returns:
+        Normalised short model name (e.g. ``"model-name"``).
+    """
+    if not raw:
+        return raw
+    short = raw.rsplit('/', 1)[-1].strip()
+    # Replace any remaining slashes and collapse whitespace
+    short = short.replace('/', '-')
+    short = "".join(short.split())
+    return short
+
+
+def parse_provider_creds(
+    arg_list: Optional[List[str]] = None,
+    file_path: Optional[str] = None,
+) -> Dict[str, Dict[str, str]]:
+    """Parse provider credential mappings from CLI arguments and/or a file.
+
+    Each entry must have the form ``provider:key=value``.  Entries from
+    *file_path* are read first; entries in *arg_list* are appended and may
+    override file entries.
+
+    Args:
+        arg_list: List of ``provider:key=value`` strings from the CLI
+            (``--provider-cred``).
+        file_path: Path to a text file with one ``provider:key=value`` entry
+            per line (``#`` comment lines and blank lines are ignored).
+
+    Returns:
+        Nested dict mapping ``{provider: {key: value}}``.
+    """
+    creds: Dict[str, Dict[str, str]] = {}
+    items: List[str] = []
+    if file_path:
+        try:
+            with open(file_path, 'r') as f:
+                for ln in f:
+                    ln = ln.strip()
+                    if not ln or ln.startswith('#'):
+                        continue
+                    items.append(ln)
+        except Exception:
+            pass
+    if arg_list:
+        items.extend(arg_list)
+    for it in items:
+        if ':' in it and '=' in it:
+            provider, rest = it.split(':', 1)
+            key, val = rest.split('=', 1)
+            provider = provider.strip()
+            key = key.strip()
+            val = val.strip()
+            creds.setdefault(provider, {})[key] = val
+    return creds
+
+
+def parse_args() -> argparse.Namespace:
+    """Build and parse the command-line argument parser.
+
+    Returns:
+        Parsed argument namespace.
+    """
     p = argparse.ArgumentParser(description='Sync models from an OpenAI-compatible API to an llmlite gateway')
     p.add_argument('--openai-url', default=os.environ.get('OPENAI_API_URL', 'https://api.openai.com'), help='OpenAI-compatible base URL')
     p.add_argument('--openai-key', default=os.environ.get('OPENAI_API_KEY'), help='OpenAI API key')
@@ -237,100 +440,126 @@ def parse_args():
     return p.parse_args()
 
 
-def main():
-    args = parse_args()
+def _run_list_credentials(args: argparse.Namespace) -> None:
+    """Print all credentials configured on the gateway and exit.
 
-    if args.list_credentials:
-        try:
-            creds = list_llmlite_credentials(args.llmgateway_url, api_key=args.llmgateway_key, timeout=args.timeout)
-        except Exception as e:
-            print(f'Failed to list credentials: {e}', file=sys.stderr)
-            sys.exit(1)
-        if not creds:
-            print('No credentials configured on gateway.')
-        else:
-            print(f'{len(creds)} credential(s) on {args.llmgateway_url}:')
-            for c in creds:
-                name = c.get('credential_name', '?')
-                provider = c.get('credential_info', {}).get('custom_llm_provider', '?')
-                keys = ', '.join(c.get('credential_values', {}).keys())
-                print(f'  {name}  [{provider}]  keys: {keys}')
-        return
+    Args:
+        args: Parsed command-line arguments.
+    """
+    try:
+        creds = list_llmlite_credentials(args.llmgateway_url, api_key=args.llmgateway_key, timeout=args.timeout)
+    except Exception as e:
+        print(f'Failed to list credentials: {e}', file=sys.stderr)
+        sys.exit(1)
+    if not creds:
+        print('No credentials configured on gateway.')
+    else:
+        print(f'{len(creds)} credential(s) on {args.llmgateway_url}:')
+        for c in creds:
+            name = c.get('credential_name', '?')
+            provider = c.get('credential_info', {}).get('custom_llm_provider', '?')
+            keys = ', '.join(c.get('credential_values', {}).keys())
+            print(f'  {name}  [{provider}]  keys: {keys}')
 
-    if args.set_credential:
-        errors = 0
-        for entry in args.set_credential:
-            # Format: name:provider:key=value,key2=value2
-            parts = entry.split(':', 2)
-            if len(parts) != 3:
-                print(f'Invalid --set-credential format (expected name:provider:key=value,...): {entry!r}', file=sys.stderr)
-                errors += 1
-                continue
-            cred_name, provider, kv_str = parts
-            values: Dict = {}
-            for kv in kv_str.split(','):
-                kv = kv.strip()
-                if '=' not in kv:
-                    continue
-                k, v = kv.split('=', 1)
-                values[k.strip()] = v.strip()
-            if not values:
-                print(f'No key=value pairs found in --set-credential entry: {entry!r}', file=sys.stderr)
-                errors += 1
-                continue
-            print(f'Setting credential {cred_name!r} [{provider}] keys={list(values.keys())}... ', end='', flush=True)
-            if args.dry_run:
-                print('(dry run)')
-                continue
-            try:
-                upsert_llmlite_credential(args.llmgateway_url, cred_name, provider, values, api_key=args.llmgateway_key, timeout=args.timeout)
-                print('OK')
-            except Exception as e:
-                print(f'FAILED: {e}', file=sys.stderr)
-                errors += 1
-        if errors:
-            sys.exit(1)
-        # If only --set-credential was given (no model-sync needed), exit
-        if not args.openai_key and not args.include_github:
-            return
 
-    if args.delete_all:
-        print(f'Fetching all models from gateway {args.llmgateway_url}...')
-        try:
-            infos = get_llmlite_model_infos(args.llmgateway_url, api_key=args.llmgateway_key, timeout=args.timeout)
-        except Exception as e:
-            print(f'Failed to fetch models from gateway: {e}', file=sys.stderr)
-            sys.exit(1)
-        if not infos:
-            print('No models found on gateway.')
-            return
-        print(f'{len(infos)} model(s) to delete:')
-        for info in infos:
-            name = info.get('model_name', '?')
-            db_id = info.get('model_info', {}).get('id', '')
-            print(f'  - {name} (id={db_id})')
+def _run_set_credentials(args: argparse.Namespace) -> bool:
+    """Create or update the named credentials supplied via ``--set-credential``.
+
+    Args:
+        args: Parsed command-line arguments.
+
+    Returns:
+        ``True`` when the caller should exit after this step (i.e. no model
+        sync was requested), ``False`` otherwise.
+    """
+    errors = 0
+    for entry in args.set_credential:
+        # Format: name:provider:key=value,key2=value2
+        parts = entry.split(':', 2)
+        if len(parts) != 3:
+            print(f'Invalid --set-credential format (expected name:provider:key=value,...): {entry!r}', file=sys.stderr)
+            errors += 1
+            continue
+        cred_name, provider, kv_str = parts
+        values: Dict = {}
+        for kv in kv_str.split(','):
+            kv = kv.strip()
+            if '=' not in kv:
+                continue
+            k, v = kv.split('=', 1)
+            values[k.strip()] = v.strip()
+        if not values:
+            print(f'No key=value pairs found in --set-credential entry: {entry!r}', file=sys.stderr)
+            errors += 1
+            continue
+        print(f'Setting credential {cred_name!r} [{provider}] keys={list(values.keys())}... ', end='', flush=True)
         if args.dry_run:
-            print('Dry run enabled; no models will be deleted.')
-            return
-        errors = 0
-        for info in infos:
-            name = info.get('model_name', '?')
-            db_id = info.get('model_info', {}).get('id', '')
-            if not db_id:
-                print(f'  Skipping {name}: no internal id found', file=sys.stderr)
-                errors += 1
-                continue
-            try:
-                print(f'  Deleting {name}... ', end='', flush=True)
-                delete_llmlite_model(args.llmgateway_url, db_id, api_key=args.llmgateway_key, timeout=args.timeout)
-                print('OK')
-            except Exception as e:
-                print(f'FAILED: {e}', file=sys.stderr)
-                errors += 1
-        if errors:
-            sys.exit(1)
-        return
+            print('(dry run)')
+            continue
+        try:
+            upsert_llmlite_credential(args.llmgateway_url, cred_name, provider, values, api_key=args.llmgateway_key, timeout=args.timeout)
+            print('OK')
+        except Exception as e:
+            print(f'FAILED: {e}', file=sys.stderr)
+            errors += 1
+    if errors:
+        sys.exit(1)
+    # If only --set-credential was given (no model-sync needed), signal the caller to exit
+    return not args.openai_key and not args.include_github
 
+
+def _run_delete_all(args: argparse.Namespace) -> None:
+    """Delete every model currently registered on the gateway.
+
+    Args:
+        args: Parsed command-line arguments.
+    """
+    print(f'Fetching all models from gateway {args.llmgateway_url}...')
+    try:
+        infos = get_llmlite_model_infos(args.llmgateway_url, api_key=args.llmgateway_key, timeout=args.timeout)
+    except Exception as e:
+        print(f'Failed to fetch models from gateway: {e}', file=sys.stderr)
+        sys.exit(1)
+    if not infos:
+        print('No models found on gateway.')
+        return
+    print(f'{len(infos)} model(s) to delete:')
+    for info in infos:
+        name = info.get('model_name', '?')
+        db_id = info.get('model_info', {}).get('id', '')
+        print(f'  - {name} (id={db_id})')
+    if args.dry_run:
+        print('Dry run enabled; no models will be deleted.')
+        return
+    errors = 0
+    for info in infos:
+        name = info.get('model_name', '?')
+        db_id = info.get('model_info', {}).get('id', '')
+        if not db_id:
+            print(f'  Skipping {name}: no internal id found', file=sys.stderr)
+            errors += 1
+            continue
+        try:
+            print(f'  Deleting {name}... ', end='', flush=True)
+            delete_llmlite_model(args.llmgateway_url, db_id, api_key=args.llmgateway_key, timeout=args.timeout)
+            print('OK')
+        except Exception as e:
+            print(f'FAILED: {e}', file=sys.stderr)
+            errors += 1
+    if errors:
+        sys.exit(1)
+
+
+def _run_sync_models(args: argparse.Namespace) -> None:
+    """Fetch remote models and register any that are missing on the gateway.
+
+    Discovers models from the configured OpenAI-compatible endpoint and,
+    optionally, from the GitHub Models catalog.  Models already present on
+    the gateway are silently skipped (idempotent).
+
+    Args:
+        args: Parsed command-line arguments.
+    """
     if not args.openai_key:
         print('Error: OpenAI API key required (env OPENAI_API_KEY or --openai-key)', file=sys.stderr)
         sys.exit(2)
@@ -368,57 +597,16 @@ def main():
         print(f'Failed to fetch models from llmlite gateway: {e}', file=sys.stderr)
         sys.exit(1)
 
-    # Parse provider credentials from CLI arguments or a file. Format: provider:key=value
-    def parse_provider_creds(arg_list, file_path):
-        creds = {}
-        items = []
-        if file_path:
-            try:
-                with open(file_path, 'r') as f:
-                    for ln in f:
-                        ln = ln.strip()
-                        if not ln or ln.startswith('#'):
-                            continue
-                        items.append(ln)
-            except Exception:
-                pass
-        if arg_list:
-            items.extend(arg_list)
-        for it in items:
-            if ':' in it and '=' in it:
-                provider, rest = it.split(':', 1)
-                key, val = rest.split('=', 1)
-                provider = provider.strip()
-                key = key.strip()
-                val = val.strip()
-                creds.setdefault(provider, {})[key] = val
-        return creds
-
     provider_creds = parse_provider_creds(args.provider_cred, args.provider_creds_file)
 
-    def normalize(raw: str) -> str:
-        # Remove anything before the last '/'
-        if not raw:
-            return raw
-        short = raw.rsplit('/', 1)[-1].strip()
-        # Replace any remaining slashes and collapse whitespace
-        short = short.replace('/', '-')
-        short = "".join(short.split())
-        return short
-
     raw_prefix = (args.public_prefix or '')
-    if raw_prefix:
-        prefix = raw_prefix.rstrip('/') + '/'
-    else:
-        prefix = ''
+    prefix = raw_prefix.rstrip('/') + '/' if raw_prefix else ''
+
     missing: List[tuple] = []  # (raw, source, short, public_id)
-    seen_public = set()
+    seen_public: set = set()
     for raw, source in remote_models:
         short = normalize(raw)
-        if source == 'github':
-            effective_prefix = 'github_copilot/'
-        else:
-            effective_prefix = prefix
+        effective_prefix = 'github_copilot/' if source == 'github' else prefix
         public_id = f"{effective_prefix}{short}"
         if public_id in seen_public:
             continue
@@ -440,7 +628,17 @@ def main():
             source_creds = provider_creds.get(source, {}) if provider_creds else {}
             source_key = source_creds.get('api_key') or (args.openai_key if source == 'openai' else args.github_token)
             credential_name = source_creds.get('credential_name') or source_creds.get('credential') or source_creds.get('credential_id')
-            res = add_llmlite_model(args.llmgateway_url, public_id, endpoint, backend_model=raw, api_key=args.llmgateway_key, model_key=source_key, credential_name=credential_name, access_group=args.access_group, timeout=args.timeout)
+            res = add_llmlite_model(
+                args.llmgateway_url,
+                public_id,
+                endpoint,
+                backend_model=raw,
+                api_key=args.llmgateway_key,
+                model_key=source_key,
+                credential_name=credential_name,
+                access_group=args.access_group,
+                timeout=args.timeout,
+            )
             # Verify the model actually appears in the gateway list
             try:
                 gateway_now = get_llmlite_models(args.llmgateway_url, api_key=args.llmgateway_key, timeout=args.timeout)
@@ -448,11 +646,39 @@ def main():
                     print('OK')
                 else:
                     print('WARNING (not present):', res)
-            except Exception as e:
+            except Exception:
                 # If verification fails, report the add response but don't crash
                 print('Added (verification failed):', res)
         except Exception as e:
             print(f'FAILED: {e}', file=sys.stderr)
+
+
+def main() -> None:
+    """Entry point: parse arguments and run the requested operation.
+
+    Operations are evaluated in the following order:
+
+    1. ``--list-credentials`` — print gateway credentials and exit.
+    2. ``--set-credential``   — create or update named credentials on the gateway.
+    3. ``--delete-all``       — delete every model from the gateway and exit.
+    4. Default               — fetch remote models and register any that are missing.
+    """
+    args = parse_args()
+
+    if args.list_credentials:
+        _run_list_credentials(args)
+        return
+
+    if args.set_credential:
+        should_exit = _run_set_credentials(args)
+        if should_exit:
+            return
+
+    if args.delete_all:
+        _run_delete_all(args)
+        return
+
+    _run_sync_models(args)
 
 
 if __name__ == '__main__':
