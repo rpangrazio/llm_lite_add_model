@@ -349,6 +349,8 @@ def add_llmlite_model(
     if not credential_name:
         payload['litellm_params']['api_base'] = openai_url.rstrip('/')
         payload['litellm_params']['api_key'] = model_key or 'none'
+    else:
+        payload['litellm_params']['api_key'] = 'none'
     if access_group:
         payload['model_info']['access_groups'] = [access_group]
     if credential_name:
