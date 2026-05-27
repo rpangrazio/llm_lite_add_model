@@ -429,6 +429,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument('--llmgateway-key', default=os.environ.get('LITELLM_MASTER_KEY'), help='llmlite gateway API key (if required)')
     p.add_argument('--provider-cred', action='append', help='Provider credential mapping: provider:key=value (can repeat)')
     p.add_argument('--provider-creds-file', help='File with provider:key=value per line')
+    p.add_argument('--gateway-credential', help='Gateway credential name to apply to all imported models')
     p.add_argument('--set-credential', action='append', metavar='NAME:PROVIDER:key=value,...',
                    help='Create/update a named gateway credential. Format: name:provider:key=value,key2=value2 (can repeat)')
     p.add_argument('--list-credentials', action='store_true', help='List credentials configured on the gateway and exit')
@@ -627,7 +628,12 @@ def _run_sync_models(args: argparse.Namespace) -> None:
             endpoint = args.openai_url if source == 'openai' else args.github_url
             source_creds = provider_creds.get(source, {}) if provider_creds else {}
             source_key = source_creds.get('api_key') or (args.openai_key if source == 'openai' else args.github_token)
-            credential_name = source_creds.get('credential_name') or source_creds.get('credential') or source_creds.get('credential_id')
+            credential_name = (
+                args.gateway_credential
+                or source_creds.get('credential_name')
+                or source_creds.get('credential')
+                or source_creds.get('credential_id')
+            )
             res = add_llmlite_model(
                 args.llmgateway_url,
                 public_id,

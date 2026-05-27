@@ -57,6 +57,7 @@ All of these can also be passed as CLI flags (see `--help`).
 | `--access-group` | Access group to assign to all registered models |
 | `--provider-cred` | Provider credential mapping (`provider:key=value`), repeatable |
 | `--provider-creds-file` | File containing provider credential mappings, one per line |
+| `--gateway-credential` | Gateway credential name to apply to all imported models |
 | `--set-credential` | Create or update a gateway credential (`name:provider:key=value,...`), repeatable |
 | `--list-credentials` | List all credentials configured on the gateway and exit |
 | `--dry-run` | Print planned actions without registering or deleting |
@@ -97,7 +98,7 @@ python add_models.py \
 
 ## Provider credentials
 
-LiteLLM supports [stored LLM Credentials](https://docs.litellm.ai/docs/proxy/ui_credentials) configured via the UI. To attach an existing credential to every model being registered, pass its name via `--provider-cred` or a credentials file.
+LiteLLM supports [stored LLM Credentials](https://docs.litellm.ai/docs/proxy/ui_credentials) configured via the UI. To attach an existing credential to every model being registered, pass its name via `--gateway-credential`. You can still use `--provider-cred` or a credentials file for source-specific mappings.
 
 **Format:** `provider:key=value`
 
@@ -115,6 +116,16 @@ python add_models.py \
   --openai-url http://localhost:11434 \
   --llmgateway-url http://localhost:4000 \
   --provider-cred openai:credential_name=ollama-local
+```
+
+**CLI example** — attach one credential to every imported model (OpenAI-compatible + GitHub when enabled):
+
+```bash
+python add_models.py \
+  --openai-url http://localhost:11434 \
+  --include-github \
+  --github-token ghp_... \
+  --gateway-credential shared-gateway-cred
 ```
 
 **File example** (`creds.txt`):
@@ -137,4 +148,3 @@ python add_models.py --provider-creds-file creds.txt ...
 - Use `--public-prefix` (or `MODEL_PUBLIC_PREFIX`) to prepend a namespace when registering. For example `--public-prefix local` registers `model-name` as `local/model-name`.
 - When `--include-github` is set, GitHub Copilot models are always registered under the `github_copilot/` prefix regardless of `--public-prefix`.
 - The script is idempotent: models already present on the gateway are skipped.
-
