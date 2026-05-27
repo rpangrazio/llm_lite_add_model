@@ -30,7 +30,7 @@ OPENAI_API_KEY=sk-... LITELLM_MASTER_KEY=key... python add_models.py \
 | `OPENAI_API_URL` | no | Source OpenAI-compatible base URL |
 | `OPENAI_API_KEY` | yes | API key for the source OpenAI-compatible endpoint |
 | `GITHUB_API_URL` | no | GitHub Models base URL |
-| `GITHUB_API_TOKEN` | yes | GitHub token for the Copilot models catalog |
+| `GITHUB_API_TOKEN` | no | GitHub token for the Copilot models catalog |
 | `LLMGATEWAY_URL` | no | LiteLLM gateway base URL |
 | `LITELLM_MASTER_KEY` | no | Gateway API key |
 | `MODEL_PUBLIC_PREFIX` | no | Prefix prepended to model names when registering (e.g. `local`) |
@@ -138,9 +138,3 @@ python add_models.py --provider-creds-file creds.txt ...
 - When `--include-github` is set, GitHub Copilot models are always registered under the `github_copilot/` prefix regardless of `--public-prefix`.
 - The script is idempotent: models already present on the gateway are skipped.
 
-## Current behavior
-
-- `--list-credentials` prints configured gateway credentials and exits.
-- `--set-credential` creates or updates named credentials on the gateway.
-- `--delete-all` removes all models from the gateway and exits.
-- `--include-github` adds GitHub Copilot models to the sync flow, but requires `GITHUB_API_TOKEN` or `--github-token`.
