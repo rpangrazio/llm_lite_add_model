@@ -312,7 +312,7 @@ def add_llmlite_model(
     api_key: Optional[str] = None,
     model_key: Optional[str] = None,
     credential_name: Optional[str] = None,
-    credential_values: Optional[Dict[str, Any]] = None,
+    credential_provider: Optional[str] = None,
     access_group: Optional[str] = None,
     timeout: int = 10,
 ) -> Dict:
@@ -349,16 +349,14 @@ def add_llmlite_model(
         'model_name': model_id,
         'litellm_params': {
             'model': provider_model,
-            'custom_llm_provider': 'openai',
         },
         'model_info': {},
     }
     if not credential_name:
+        payload['litellm_params']['custom_llm_provider'] = 'openai'
         payload['litellm_params']['api_base'] = openai_url.rstrip('/')
         payload['litellm_params']['api_key'] = model_key or 'none'
-    elif credential_values:
-        payload['litellm_params'].update(credential_values.get('credential_values', {}))
-        credential_provider = credential_values.get('credential_info', {}).get('custom_llm_provider')
+    else:
         if not credential_provider:
             raise ValueError(f"gateway credential {credential_name!r} is missing custom_llm_provider")
         payload['litellm_params']['custom_llm_provider'] = credential_provider
@@ -674,7 +672,12 @@ def _run_sync_models(args: argparse.Namespace) -> None:
                 raise ValueError(
                     f"gateway credential {credential_name!r} was not found on {args.llmgateway_url}"
                 )
-            credential_values = credential_map.get(credential_name) if credential_name else None
+            credential_record = credential_map.get(credential_name) if credential_name else None
+            credential_provider = (
+                credential_record.get('credential_info', {}).get('custom_llm_provider')
+                if credential_record
+                else None
+            )
             res = add_llmlite_model(
                 args.llmgateway_url,
                 public_id,
@@ -683,7 +686,7 @@ def _run_sync_models(args: argparse.Namespace) -> None:
                 api_key=args.llmgateway_key,
                 model_key=source_key,
                 credential_name=credential_name,
-                credential_values=credential_values,
+                credential_provider=credential_provider,
                 access_group=args.access_group,
                 timeout=args.timeout,
             )
