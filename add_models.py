@@ -132,7 +132,7 @@ def fetch_github_models(github_url: str, token: str, timeout: int = 10) -> List[
 
 
 def get_llmlite_models(gateway_url: str, api_key: Optional[str] = None, timeout: int = 10) -> List[str]:
-    """Fetch the list of public model IDs currently registered on the llmlite gateway.
+    """Fetch the list of public model names currently registered on the llmlite gateway.
 
     Args:
         gateway_url: Base URL of the llmlite gateway.
@@ -140,7 +140,7 @@ def get_llmlite_models(gateway_url: str, api_key: Optional[str] = None, timeout:
         timeout: HTTP request timeout in seconds.
 
     Returns:
-        List of model ID strings reported by the gateway.
+        List of model name strings reported by the gateway.
 
     Raises:
         requests.HTTPError: If the HTTP response status indicates an error.
@@ -161,6 +161,10 @@ def get_llmlite_models(gateway_url: str, api_key: Optional[str] = None, timeout:
     for item in items:
         if isinstance(item, dict) and 'id' in item:
             models.append(item['id'])
+        elif isinstance(item, dict) and 'model_name' in item:
+            models.append(item['model_name'])
+        elif isinstance(item, dict) and 'model_id' in item:
+            models.append(item['model_id'])
         elif isinstance(item, str):
             models.append(item)
     return models
