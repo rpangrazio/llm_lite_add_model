@@ -55,7 +55,7 @@ def fetch_openai_models(openai_url: str, api_key: str, timeout: int = 10) -> Lis
 
     Args:
         openai_url: Base URL of the OpenAI-compatible API.
-        api_key: ****** for authentication.
+        api_key: API key sent as an Authorization header.
         timeout: HTTP request timeout in seconds.
 
     Returns:
@@ -65,7 +65,7 @@ def fetch_openai_models(openai_url: str, api_key: str, timeout: int = 10) -> Lis
         requests.HTTPError: If the HTTP response status indicates an error.
     """
     url = openai_url.rstrip('/') + '/v1/models'
-    headers = {'Authorization': f'******'}
+    headers = {'Authorization': 'Bearer ' + api_key}
     resp = requests.get(url, headers=headers, timeout=timeout)
     resp.raise_for_status()
     data = resp.json()
@@ -98,7 +98,7 @@ def fetch_github_models(github_url: str, token: str, timeout: int = 10) -> List[
     """
     url = github_url.rstrip('/') + '/catalog/models'
     headers = {
-        'Authorization': f'******',
+        'Authorization': 'Bearer ' + token,
         'Accept': 'application/vnd.github+json',
         'X-GitHub-Api-Version': '2026-03-10',
     }
@@ -136,7 +136,7 @@ def get_llmlite_models(gateway_url: str, api_key: Optional[str] = None, timeout:
 
     Args:
         gateway_url: Base URL of the llmlite gateway.
-        api_key: Optional ****** for gateway authentication.
+        api_key: Optional API key sent as an Authorization header.
         timeout: HTTP request timeout in seconds.
 
     Returns:
@@ -148,7 +148,7 @@ def get_llmlite_models(gateway_url: str, api_key: Optional[str] = None, timeout:
     url = gateway_url.rstrip('/') + '/v1/models'
     headers = {}
     if api_key:
-        headers['Authorization'] = f'******'
+        headers['Authorization'] = 'Bearer ' + api_key
     resp = requests.get(url, headers=headers, timeout=timeout)
     resp.raise_for_status()
     data = resp.json()
@@ -171,7 +171,7 @@ def get_llmlite_model_infos(gateway_url: str, api_key: Optional[str] = None, tim
 
     Args:
         gateway_url: Base URL of the llmlite gateway.
-        api_key: Optional ****** for gateway authentication.
+        api_key: Optional API key sent as an Authorization header.
         timeout: HTTP request timeout in seconds.
 
     Returns:
@@ -183,7 +183,7 @@ def get_llmlite_model_infos(gateway_url: str, api_key: Optional[str] = None, tim
     url = gateway_url.rstrip('/') + '/model/info'
     headers = {}
     if api_key:
-        headers['Authorization'] = f'******'
+        headers['Authorization'] = 'Bearer ' + api_key
     resp = requests.get(url, headers=headers, timeout=timeout)
     resp.raise_for_status()
     data = resp.json()
@@ -197,7 +197,7 @@ def delete_llmlite_model(gateway_url: str, model_db_id: str, api_key: Optional[s
     Args:
         gateway_url: Base URL of the llmlite gateway.
         model_db_id: Internal database ID of the model (from ``model_info.id``).
-        api_key: Optional ****** for gateway authentication.
+        api_key: Optional API key sent as an Authorization header.
         timeout: HTTP request timeout in seconds.
 
     Returns:
@@ -209,7 +209,7 @@ def delete_llmlite_model(gateway_url: str, model_db_id: str, api_key: Optional[s
     url = gateway_url.rstrip('/') + '/model/delete'
     headers = {'Content-Type': 'application/json'}
     if api_key:
-        headers['Authorization'] = f'******'
+        headers['Authorization'] = 'Bearer ' + api_key
     resp = requests.post(url, json={'id': model_db_id}, headers=headers, timeout=timeout)
     resp.raise_for_status()
     try:
@@ -223,7 +223,7 @@ def list_llmlite_credentials(gateway_url: str, api_key: Optional[str] = None, ti
 
     Args:
         gateway_url: Base URL of the llmlite gateway.
-        api_key: Optional ****** for gateway authentication.
+        api_key: Optional API key sent as an Authorization header.
         timeout: HTTP request timeout in seconds.
 
     Returns:
@@ -235,7 +235,7 @@ def list_llmlite_credentials(gateway_url: str, api_key: Optional[str] = None, ti
     url = gateway_url.rstrip('/') + '/credentials'
     headers = {}
     if api_key:
-        headers['Authorization'] = f'******'
+        headers['Authorization'] = 'Bearer ' + api_key
     resp = requests.get(url, headers=headers, timeout=timeout)
     resp.raise_for_status()
     data = resp.json()
@@ -259,7 +259,7 @@ def upsert_llmlite_credential(
             ``"anthropic"``).
         values: Dict of credential values
             (e.g. ``{"api_key": "sk-...", "api_base": "http://..."}``).
-        api_key: Optional ****** for gateway authentication.
+        api_key: Optional API key sent as an Authorization header.
         timeout: HTTP request timeout in seconds.
 
     Returns:
@@ -271,7 +271,7 @@ def upsert_llmlite_credential(
     url = gateway_url.rstrip('/') + '/credentials'
     headers = {'Content-Type': 'application/json'}
     if api_key:
-        headers['Authorization'] = f'******'
+        headers['Authorization'] = 'Bearer ' + api_key
     payload = {
         'credential_name': credential_name,
         'credential_values': values,
@@ -304,7 +304,7 @@ def add_llmlite_model(
         openai_url: Base URL of the upstream provider endpoint.
         backend_model: Exact model name as returned by the provider backend.
             Defaults to *model_id* when not supplied.
-        api_key: Optional ****** for gateway authentication.
+        api_key: Optional API key sent as an Authorization header.
         model_key: API key forwarded to the upstream provider.
         credential_name: Optional name of an existing LLM Credential on the
             gateway to associate with this model.
@@ -320,7 +320,7 @@ def add_llmlite_model(
     url = gateway_url.rstrip('/') + '/model/new'
     headers = {'Content-Type': 'application/json'}
     if api_key:
-        headers['Authorization'] = f'******'
+        headers['Authorization'] = 'Bearer ' + api_key
 
     # Use the exact provider model name in litellm_params; LiteLLM routes via "openai/" provider prefix.
     provider_model = backend_model or model_id
