@@ -338,7 +338,7 @@ def add_llmlite_model(
     if access_group:
         payload['model_info']['access_groups'] = [access_group]
     if credential_name:
-        payload['model_info']['credential_name'] = credential_name
+        payload['litellm_params']['litellm_credential_name'] = credential_name
 
     resp = requests.post(url, json=payload, headers=headers, timeout=timeout)
     resp.raise_for_status()
