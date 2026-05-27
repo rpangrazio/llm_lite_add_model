@@ -30,13 +30,15 @@ OPENAI_API_KEY=sk-... LITELLM_MASTER_KEY=key... python add_models.py \
 | `OPENAI_API_URL` | no | Source OpenAI-compatible base URL |
 | `OPENAI_API_KEY` | yes | API key for the source OpenAI-compatible endpoint |
 | `GITHUB_API_URL` | no | GitHub Models base URL |
-| `GITHUB_API_TOKEN` | only with `--include-github` | GitHub token for the Copilot models catalog |
+| `GITHUB_API_TOKEN` | yes | GitHub token for the Copilot models catalog |
 | `LLMGATEWAY_URL` | no | LiteLLM gateway base URL |
 | `LITELLM_MASTER_KEY` | no | Gateway API key |
 | `MODEL_PUBLIC_PREFIX` | no | Prefix prepended to model names when registering (e.g. `local`) |
 | `LLM_ACCESS_GROUP` | no | Access group assigned to registered models |
 
 All of these can also be passed as CLI flags (see `--help`).
+
+`GITHUB_API_TOKEN` is only needed when `--include-github` is set.
 
 `./env` and `./.env` are auto-loaded at startup if present. Existing shell variables always take priority.
 
