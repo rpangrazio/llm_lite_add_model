@@ -15,7 +15,7 @@ import argparse
 import os
 import sys
 import requests
-from typing import Any, Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set
 
 
 def _load_env_file(path: str = None) -> None:
@@ -255,16 +255,6 @@ def gateway_credential_names(credentials: List[Dict]) -> Set[str]:
     }
 
 
-def gateway_credentials_by_name(credentials: List[Dict]) -> Dict[str, Dict[str, Any]]:
-    """Map gateway credential names to their stored values."""
-    result: Dict[str, Dict[str, Any]] = {}
-    for credential in credentials:
-        name = credential.get('credential_name')
-        if name:
-            result[str(name)] = credential
-    return result
-
-
 def upsert_llmlite_credential(
     gateway_url: str,
     credential_name: str,
@@ -316,7 +306,6 @@ def add_llmlite_model(
     api_key: Optional[str] = None,
     model_key: Optional[str] = None,
     credential_name: Optional[str] = None,
-    credential_provider: Optional[str] = None,
     access_group: Optional[str] = None,
     timeout: int = 10,
 ) -> Dict:
@@ -353,17 +342,13 @@ def add_llmlite_model(
         'model_name': model_id,
         'litellm_params': {
             'model': provider_model,
+            'custom_llm_provider': 'openai',
         },
         'model_info': {},
     }
     if not credential_name:
-        payload['litellm_params']['custom_llm_provider'] = 'openai'
         payload['litellm_params']['api_base'] = openai_url.rstrip('/')
         payload['litellm_params']['api_key'] = model_key or 'none'
-    else:
-        if not credential_provider:
-            raise ValueError(f"gateway credential {credential_name!r} is missing custom_llm_provider")
-        payload['litellm_params']['custom_llm_provider'] = credential_provider
     if access_group:
         payload['model_info']['access_groups'] = [access_group]
     if credential_name:
@@ -633,8 +618,6 @@ def _run_sync_models(args: argparse.Namespace) -> None:
         print(f'Failed to fetch credentials from llmlite gateway: {e}', file=sys.stderr)
         sys.exit(1)
     credential_names = gateway_credential_names(gateway_credentials)
-    credential_map = gateway_credentials_by_name(gateway_credentials)
-
     provider_creds = parse_provider_creds(args.provider_cred, args.provider_creds_file)
 
     raw_prefix = (args.public_prefix or '')
@@ -676,12 +659,6 @@ def _run_sync_models(args: argparse.Namespace) -> None:
                 raise ValueError(
                     f"gateway credential {credential_name!r} was not found on {args.llmgateway_url}"
                 )
-            credential_record = credential_map.get(credential_name) if credential_name else None
-            credential_provider = (
-                credential_record.get('credential_info', {}).get('custom_llm_provider')
-                if credential_record
-                else None
-            )
             res = add_llmlite_model(
                 args.llmgateway_url,
                 public_id,
@@ -690,7 +667,6 @@ def _run_sync_models(args: argparse.Namespace) -> None:
                 api_key=args.llmgateway_key,
                 model_key=source_key,
                 credential_name=credential_name,
-                credential_provider=credential_provider,
                 access_group=args.access_group,
                 timeout=args.timeout,
             )
