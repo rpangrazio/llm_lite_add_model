@@ -47,6 +47,9 @@ All of these can also be passed as CLI flags (see `--help`).
 ```
 --openai-url          Source OpenAI-compatible base URL (default: https://api.openai.com)
 --openai-key          Source API key
+--include-github      Also fetch GitHub Copilot models catalog
+--github-token        GitHub API token
+--github-url          GitHub Models base URL (default: https://models.github.ai)
 --llmgateway-url      LiteLLM gateway base URL (default: http://localhost:4000)
 --llmgateway-key      LiteLLM gateway master key
 --public-prefix       Prefix to prepend to registered model names
@@ -60,11 +63,6 @@ All of these can also be passed as CLI flags (see `--help`).
 --timeout             HTTP timeout in seconds (default: 10)
 ```
 
-GitHub model sync:
-
-- `--include-github` also fetches GitHub Copilot models.
-- `--github-token` provides the GitHub API token required when `--include-github` is set.
-- `--github-url` overrides the GitHub Models base URL (default: `https://models.github.ai`).
 
 ## Gateway credentials
 
